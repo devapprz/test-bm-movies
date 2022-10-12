@@ -54,3 +54,15 @@ suspend inline fun <reified T> Request.awaitResult(context: Context) = flow {
     val result = ResponseWrapper(res.statusCode, "success", gson.fromJson<T>(data.get(), typeToken))
     emit(result)
 }
+
+fun Throwable.readMessage() = message.runCatching {
+    require(!isNullOrEmpty())
+    val json = JSONObject(this)
+    ResponseWrapper<Any>(
+        json.optInt("status", 400),
+        json.optString("message", localizedMessage ?: this),
+        null
+    )
+}.getOrElse {
+    ResponseWrapper(400, localizedMessage ?: message ?: it.localizedMessage, null)
+}
