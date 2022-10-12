@@ -13,56 +13,16 @@ import kotlinx.coroutines.flow.flow
 import org.json.JSONObject
 
 suspend inline fun <reified T> Request.awaitResult(context: Context) = flow {
-    val injector = EntryPointAccessors.fromApplication(
-        context,
-        SingletonInjector::class.java
-    )
+    val injector = EntryPointAccessors.fromApplication(context, SingletonInjector::class.java)
     val gson = injector.gson
     parameters = listOf("api_key" to BuildConfig.API_KEY)
     val (_, res, data) = awaitStringResponseResult()
-    require(res.isSuccessful) {
-        gson.toJson(
-            ResponseWrapper<T>(
-                res.statusCode,
-                res.responseMessage,
-                null
-            )
-        )
-    }
-    data.component2()?.apply {
-        val message = gson.toJson(
-            ResponseWrapper<T>(
-                res.statusCode,
-                localizedMessage ?: res.responseMessage,
-                null
-            )
-        )
-        throw Exception(message)
-    }
+    require(res.isSuccessful) { res.responseMessage }
+    val fuelError = data.component2()
+    require(fuelError == null) { fuelError?.localizedMessage ?: res.responseMessage }
     val payloadJson = JSONObject(data.get())
     val statusMessage = payloadJson.optString("status_message", "")
-    require(statusMessage.isEmpty()) {
-        gson.toJson(
-            ResponseWrapper<T>(
-                payloadJson.optInt("status_code", res.statusCode),
-                statusMessage,
-                null
-            )
-        )
-    }
+    require(statusMessage.isEmpty()) { statusMessage }
     val typeToken = object : TypeToken<T>() {}.type
-    val result = ResponseWrapper(res.statusCode, "", gson.fromJson<T>(data.get(), typeToken))
-    emit(result)
-}
-
-fun Throwable.readMessage() = message.runCatching {
-    require(!isNullOrEmpty())
-    val json = JSONObject(this)
-    ResponseWrapper<Any>(
-        json.optInt("status", 400),
-        json.optString("message", localizedMessage ?: this),
-        null
-    )
-}.getOrElse {
-    ResponseWrapper(400, localizedMessage ?: message ?: it.localizedMessage, null)
+    emit(ResponseWrapper(res.statusCode, "", gson.fromJson<T>(data.get(), typeToken)))
 }
