@@ -7,7 +7,7 @@ import com.github.kittinunf.fuel.coroutines.awaitStringResponseResult
 import com.google.gson.reflect.TypeToken
 import com.yusuf.bankmandiri.movies.BuildConfig
 import com.yusuf.bankmandiri.movies.injection.SingletonInjector
-import com.yusuf.bankmandiri.movies.utils.base.ResponseWrapper
+import com.yusuf.bankmandiri.movies.utils.ResponseWrapper
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.flow
 import org.json.JSONObject
