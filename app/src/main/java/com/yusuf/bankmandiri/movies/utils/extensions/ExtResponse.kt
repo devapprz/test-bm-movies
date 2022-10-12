@@ -51,7 +51,7 @@ suspend inline fun <reified T> Request.awaitResult(context: Context) = flow {
         )
     }
     val typeToken = object : TypeToken<T>() {}.type
-    val result = ResponseWrapper(res.statusCode, "success", gson.fromJson<T>(data.get(), typeToken))
+    val result = ResponseWrapper(res.statusCode, "", gson.fromJson<T>(data.get(), typeToken))
     emit(result)
 }
 
