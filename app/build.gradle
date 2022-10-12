@@ -6,6 +6,11 @@ plugins {
     id "dagger.hilt.android.plugin"
 }
 
+Properties properties = new Properties()
+if (rootProject.file("local.properties").exists()) {
+    properties.load(rootProject.file("local.properties").newDataInputStream())
+}
+
 android {
     namespace 'com.yusuf.bankmandiri.movies'
     compileSdk 33
@@ -21,6 +26,9 @@ android {
         targetSdk 33
         versionCode 1
         versionName "1.0"
+
+        buildConfigField "String", "API_KEY", properties.getProperty("api.key")
+        buildConfigField "String", "API_URL", properties.getProperty("api.url")
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -93,4 +101,8 @@ dependencies {
     kapt "androidx.hilt:hilt-compiler:1.0.0"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4"
+}
+
+kapt {
+    correctErrorTypes true
 }
